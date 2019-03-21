@@ -5,7 +5,7 @@ import javafx.stage.Stage;
 public class TestFx extends Application {
 
 	@Override
-	public void start(Stage promaryStage) {
+	public void start(Stage primaryStage) {
 		Button btOK = new Button("ok");
 		Scene scene = new Scene(btOK, 200, 250);
 		primaryStage.setTitle("test");

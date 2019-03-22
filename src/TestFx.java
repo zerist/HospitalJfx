@@ -21,6 +21,9 @@ import javafx.scene.shape.Line;
 import javafx.scene.text.Text;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.util.Duration;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 
 public class TestFx extends Application {
 
@@ -51,6 +54,13 @@ public class TestFx extends Application {
 				break;
 			}
 		});
+		
+		Timeline animationTimeline = new Timeline();
+		animationTimeline.getKeyFrames().add(new KeyFrame(Duration.millis(1000), e-> {
+			clockPane.setCurrentTime();
+		}));
+		animationTimeline.setCycleCount(Timeline.INDEFINITE);
+		animationTimeline.play();
 		
 		BorderPane pane = new BorderPane();
 		pane.setCenter(clockPane);

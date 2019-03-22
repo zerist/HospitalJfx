@@ -1,9 +1,10 @@
-import java.awt.Label;
+import javafx.event.ActionEvent;
 import java.text.ParsePosition;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 
 import javafx.application.Application;
+import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -25,13 +26,23 @@ public class TestFx extends Application {
 	@Override
 	public void start(Stage primaStage) {
 		ClockPane clockPane = new ClockPane();
+		
+		
 		String timeString = clockPane.hour + ":" + clockPane.minute + ":" + clockPane.second;
-		Label label_curTimeLabel = new Label(timeString);
+		Button label_curTimeLabel = new Button(timeString);
+		label_curTimeLabel.setOnAction(new EventHandler<ActionEvent>() {
+			@Override
+			public void handle(ActionEvent e) {
+				clockPane.setCurrentTime();
+				label_curTimeLabel.setText(clockPane.hour + ":" + clockPane.minute + ":" + clockPane.second);
+				System.out.println(clockPane.second);
+			}
+		});
 		
 		BorderPane pane = new BorderPane();
 		pane.setCenter(clockPane);
-		//pane.setBottom(label_curTimeLabel);
-		//BorderPane.setAlignment(label_curTimeLabel, Pos.TOP_CENTER);
+		pane.setBottom(label_curTimeLabel);
+		BorderPane.setAlignment(label_curTimeLabel, Pos.TOP_CENTER);
 		
 		Scene scene = new Scene(pane, 250, 250);
 		primaStage.setTitle("clock");
@@ -40,6 +51,7 @@ public class TestFx extends Application {
 	}
 
 }
+
 
 class ClockPane extends Pane{
 	public int hour;
@@ -51,6 +63,7 @@ class ClockPane extends Pane{
 	public ClockPane() {
 		setCurrentTime();
 	}
+
 	
 	public void setCurrentTime() {
 		Calendar calendar = new GregorianCalendar();
@@ -75,7 +88,7 @@ class ClockPane extends Pane{
 		
 		double sLength = clockRadius * 0.8;
 		double secondX = centerX + sLength * Math.sin(second * (2 * Math.PI / 60));
-		double secondY = centerY - sLength * Math.acos(second * (2 * Math.PI / 60));
+		double secondY = centerY - sLength * Math.cos(second * (2 * Math.PI / 60));
 		Line sLine = new Line(centerX, centerY, secondX, secondY);
 		sLine.setStroke(Color.RED);
 		

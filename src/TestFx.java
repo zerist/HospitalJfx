@@ -1,5 +1,6 @@
 import javafx.event.ActionEvent;
-import java.text.ParsePosition;
+
+import javafx.scene.control.*;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 
@@ -38,6 +39,18 @@ public class TestFx extends Application {
 				System.out.println(clockPane.second);
 			}
 		});
+		label_curTimeLabel.setOnKeyPressed(e -> {
+			System.out.println("getCharacter(): " + e.getCharacter());
+			System.out.println("getText(): " + e.getText());
+			switch (e.getCode()) {
+			case DOWN:
+				System.out.println("Down");
+				break;
+
+			default:
+				break;
+			}
+		});
 		
 		BorderPane pane = new BorderPane();
 		pane.setCenter(clockPane);
@@ -48,6 +61,8 @@ public class TestFx extends Application {
 		primaStage.setTitle("clock");
 		primaStage.setScene(scene);
 		primaStage.show();
+		
+		label_curTimeLabel.requestFocus();
 	}
 
 }
@@ -108,3 +123,4 @@ class ClockPane extends Pane{
 		getChildren().addAll(circle, t1, t2, t3, t4, sLine, mLine, hLine);
 	}
 }
+

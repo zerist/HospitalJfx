@@ -2,6 +2,9 @@ import javafx.application.Application;
 
 import java.io.Closeable;
 import java.sql.*;
+
+import javax.swing.ButtonModel;
+
 import javafx.event.*;
 import javafx.geometry.*;
 import javafx.scene.Scene;
@@ -13,6 +16,8 @@ import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.collections.*;
+import javafx.scene.control.cell.*;
+import javafx.beans.property.*;
 public class HospitalSysUI extends Application{
 	public Connection ct = null;
 	public PreparedStatement ps = null;
@@ -56,9 +61,16 @@ public class HospitalSysUI extends Application{
 		
 		
 		LoginPane loginPane = new LoginPane(priStage, ct);
+		Scene scene = new Scene(loginPane, 600, 300);
 		
+		RegistePane registerPane = new RegistePane(priStage, loginPane);
+		registerPane.setVisible(false);
+		loginPane.registerPane = registerPane;
 		
-		Scene scene = new Scene(loginPane, 400, 300);
+		DoctorPane doctorPane = new DoctorPane(priStage, loginPane);
+		doctorPane.setVisible(false);
+		loginPane.doctorPane = doctorPane;
+		
 		priStage.setScene(scene);
 		priStage.show();
 	}
@@ -71,6 +83,8 @@ public class HospitalSysUI extends Application{
 class LoginPane extends GridPane{
 	PreparedStatement ps = null;
 	ResultSet rs = null;
+	RegistePane registerPane = null;
+	DoctorPane doctorPane = null;
 	public LoginPane(Stage stage, Connection ct) {
 		//loginPane 设置
 		this.setAlignment(Pos.CENTER);
@@ -115,9 +129,30 @@ class LoginPane extends GridPane{
 		loginButton.setOnAction(e -> {
 			//rstText.setText("success!");
 			try {
-				ps = ct.prepareStatement("select * from dbo.T_BRXX where brbh=?");
+				//String tableName = "dbo.T_BRXX";
+				//String bhName = "brbh";
+				
+				
+				//String sql = "select * from ? where ?=?";
+				//这样不知道为什么不行，会报lambda@p0错误
+				String sql = "select * from dbo.T_BRXX where brbh=?";
+				int type = 0; //病人
+				if(patientButton.isSelected()) {
+					//tableName = "dbo.T_BRXX";
+					//bhName = "brbh";
+					sql = "select * from dbo.T_BRXX where brbh=?";
+					type = 0;
+				}else {
+					//tableName = "dbo.T_KSYS";
+					//bhName = "ysbh";
+					sql = "select * from dbo.T_KSYS where ysbh=?";
+					type = 1;	//医生
+				}
+				
+				ps = ct.prepareStatement(sql);
 				ps.setString(1, userNameField.getText());
 				rs = ps.executeQuery();
+				
 				
 				if(rs.next()) {
 					String pwd = rs.getString("dlkl");
@@ -129,9 +164,20 @@ class LoginPane extends GridPane{
 					if(passwdField.getText().equals(pwd.trim())) {
 					
 						this.setVisible(false);
-						RegistePane registePane = new RegistePane(stage, this.getScene());
-						Scene regScene = new Scene(registePane, 600, 300);	
-						stage.setScene(regScene);
+						//RegistePane registePane = new RegistePane(stage, this.getScene());
+						//Scene regScene = new Scene(registePane, 600, 300);
+						Scene scene = this.getScene();
+						if(type == 0) {
+							registerPane.username = userNameField.getText().trim();
+							scene.setRoot(registerPane);
+							registerPane.setVisible(true);
+						}
+						if(type == 1) {
+							doctorPane.username = userNameField.getText().trim();
+							scene.setRoot(doctorPane);
+							doctorPane.setVisible(true);
+						}
+						stage.setScene(scene);
 					}else {
 						rstText.setText("invalid username or password!");
 					}
@@ -158,7 +204,8 @@ class LoginPane extends GridPane{
 class RegistePane extends FlowPane{
 	PreparedStatement ps = null;
 	ResultSet rs = null;
-	public RegistePane(Stage stage, Scene lastScene) {
+	String username = null;
+	public RegistePane(Stage stage, LoginPane lastPane) {
 		//设置
 		this.setOrientation(Orientation.VERTICAL);
 		this.setAlignment(Pos.CENTER);
@@ -247,9 +294,11 @@ class RegistePane extends FlowPane{
 		});
 		
 		exitButton.setOnAction(e -> {
-			this.setVisible(false);	
-			lastScene.getRoot().setVisible(true);
-			stage.setScene(lastScene);
+			this.setVisible(false);
+			Scene scene = this.getScene();
+			scene.setRoot(lastPane);
+			lastPane.setVisible(true);
+			stage.setScene(scene);
 		});
 		
 		buttonFlowPane.getChildren().addAll(confirmButton, clearButton, exitButton);
@@ -257,3 +306,100 @@ class RegistePane extends FlowPane{
 		this.getChildren().add(buttonFlowPane);
 	}
 }
+
+class DoctorPane extends FlowPane{
+	PreparedStatement ps;
+	ResultSet rs;
+	String username = null;
+	
+	public DoctorPane(Stage stage, LoginPane lastPane) {
+		this.setOrientation(Orientation.VERTICAL);
+		this.setAlignment(Pos.CENTER);
+		this.setVgap(10);
+		this.setPadding(new Insets(15));
+		
+		//按钮模拟菜单选项卡
+		FlowPane titlePane = new FlowPane();
+		titlePane.setAlignment(Pos.TOP_LEFT);
+		titlePane.setHgap(5);
+		titlePane.setPadding(new Insets(10));
+		
+		Button brButton = new Button("病人列表");
+		brButton.setOnAction(e -> {
+			System.out.println("brbutton clicked");
+			//TODO
+		});
+		
+		Button srButton = new Button("收入列表");
+		srButton.setOnAction(e -> {
+			System.out.println("srButton clicked");
+		});
+		
+		Button exitButton = new Button("退出系统");
+		exitButton.setOnAction(e -> {
+			this.setVisible(false);
+			Scene scene = this.getScene();
+			scene.setRoot(lastPane);
+			lastPane.setVisible(true);
+			stage.setScene(scene);
+		});
+		
+		titlePane.getChildren().addAll(brButton, srButton, exitButton);
+		this.getChildren().add(titlePane);
+		
+		//分割线
+		Separator separator = new Separator(Orientation.HORIZONTAL);
+		this.getChildren().add(separator);
+		
+		//tableView
+		//TODO nextDay
+	}
+	
+	public static class Patient{
+		private final SimpleStringProperty ghbh;
+		private final SimpleStringProperty brmc;
+        private final SimpleStringProperty ghrqsj;
+        private final SimpleStringProperty hlzb;
+        
+ 
+        private Patient(String ghbh, String brmc, String ghrqsj, String hlzb) {
+            this.ghbh = new SimpleStringProperty(ghbh);
+            this.brmc = new SimpleStringProperty(brmc);
+            this.ghrqsj = new SimpleStringProperty(ghrqsj);
+            this.hlzb = new SimpleStringProperty(hlzb);
+        }
+ 
+        public String getghbh() {
+            return ghbh.get();
+        }
+ 
+        public void setghbh(String fName) {
+            ghbh.set(fName);
+        }
+ 
+        public String getbrmc() {
+            return brmc.get();
+        }
+ 
+        public void setbrmc(String fName) {
+            brmc.set(fName);
+        }
+        
+        public String getghrqsj() {
+            return ghrqsj.get();
+        }
+ 
+        public void setghrqsj(String fName) {
+            ghrqsj.set(fName);
+        }
+        
+        public String gethlzb() {
+            return hlzb.get();
+        }
+ 
+        public void sethlzb(String fName) {
+            hlzb.set(fName);
+        }
+	}
+}
+

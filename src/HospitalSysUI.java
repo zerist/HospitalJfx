@@ -1,4 +1,7 @@
 import javafx.application.Application;
+
+import java.io.Closeable;
+import java.sql.*;
 import javafx.event.*;
 import javafx.geometry.*;
 import javafx.scene.Scene;
@@ -11,12 +14,48 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.collections.*;
 public class HospitalSysUI extends Application{
+	public Connection ct = null;
+	public PreparedStatement ps = null;
+	public ResultSet rs = null;
+	
+	public void closeSys() {
+		try {
+			if(ct != null) ct.close();
+			if(ps != null) ps.close();
+			if(rs != null) rs.close();
+		}catch (Exception e) {
+			System.out.println("close system err!");
+			e.printStackTrace();
+		}
+	}
+	
+	public void getConnect() {
+		
+		String dbName = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
+		String dbURL = "jdbc:sqlserver://localhost:1433;DatabaseName=test";
+		String user = "sa";
+		String passwd = "1518079220";
+		
+		try {
+			Class.forName(dbName);
+			ct = DriverManager.getConnection(dbURL, user, passwd);
+			System.out.println("connect database success!");
+		}catch (Exception e) {
+			System.out.println("connect database fail!");
+			e.printStackTrace();
+		}
+	}
+	
 	@Override
 	public void start(Stage priStage) {
 		//设置标题
 		priStage.setTitle("Hospital System");
 		
-		LoginPane loginPane = new LoginPane(priStage);
+		//连接数据库
+		getConnect();
+		
+		
+		LoginPane loginPane = new LoginPane(priStage, ct);
 		
 		
 		Scene scene = new Scene(loginPane, 400, 300);
@@ -30,7 +69,9 @@ public class HospitalSysUI extends Application{
 }
 
 class LoginPane extends GridPane{
-	public LoginPane(Stage stage) {
+	PreparedStatement ps = null;
+	ResultSet rs = null;
+	public LoginPane(Stage stage, Connection ct) {
 		//loginPane 设置
 		this.setAlignment(Pos.CENTER);
 		this.setHgap(10);
@@ -72,13 +113,43 @@ class LoginPane extends GridPane{
 		Text rstText = new Text();
 		
 		loginButton.setOnAction(e -> {
-			rstText.setText("success!");
-			
-			this.setVisible(false);
-			RegistePane registePane = new RegistePane();
-			Scene regScene = new Scene(registePane, 600, 300);	
-			stage.setScene(regScene);
-			
+			//rstText.setText("success!");
+			try {
+				ps = ct.prepareStatement("select * from dbo.T_BRXX where brbh=?");
+				ps.setString(1, userNameField.getText());
+				ps.executeQuery();
+				rs = ps.executeQuery();
+				
+				if(rs.next()) {
+					String pwd = rs.getString("dlkl");
+					
+					//System.out.println(userNameField.getText());
+					//System.out.println(passwdField.getText());
+					//System.out.println(pwd.length());
+					//pwd长度为，有空格
+					if(passwdField.getText().equals(pwd.trim())) {
+					
+						this.setVisible(false);
+						RegistePane registePane = new RegistePane();
+						Scene regScene = new Scene(registePane, 600, 300);	
+						stage.setScene(regScene);
+					}else {
+						rstText.setText("invalid username or password!");
+					}
+				}else {
+					rstText.setText("invalid username or password!");
+				}
+					
+			}catch (Exception ex) {
+				ex.printStackTrace();
+			}finally {
+				try {
+					if(ps != null) ps.close();
+					if(rs != null) rs.close();
+				}catch (Exception fe) {
+					fe.printStackTrace();
+				}
+			}
 		});
 		
 		this.add(rstText, 1, 6);

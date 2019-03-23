@@ -117,7 +117,6 @@ class LoginPane extends GridPane{
 			try {
 				ps = ct.prepareStatement("select * from dbo.T_BRXX where brbh=?");
 				ps.setString(1, userNameField.getText());
-				ps.executeQuery();
 				rs = ps.executeQuery();
 				
 				if(rs.next()) {
@@ -130,7 +129,7 @@ class LoginPane extends GridPane{
 					if(passwdField.getText().equals(pwd.trim())) {
 					
 						this.setVisible(false);
-						RegistePane registePane = new RegistePane();
+						RegistePane registePane = new RegistePane(stage, this.getScene());
 						Scene regScene = new Scene(registePane, 600, 300);	
 						stage.setScene(regScene);
 					}else {
@@ -157,7 +156,9 @@ class LoginPane extends GridPane{
 }
 
 class RegistePane extends FlowPane{
-	public RegistePane() {
+	PreparedStatement ps = null;
+	ResultSet rs = null;
+	public RegistePane(Stage stage, Scene lastScene) {
 		//设置
 		this.setOrientation(Orientation.VERTICAL);
 		this.setAlignment(Pos.CENTER);
@@ -228,6 +229,29 @@ class RegistePane extends FlowPane{
 		Button confirmButton = new Button("确定");
 		Button clearButton = new Button("清除");
 		Button exitButton = new Button("退出");
+		
+		confirmButton.setOnAction(e -> {
+			System.out.println("click confirmButton");
+			//TODO
+		});
+		
+		clearButton.setOnAction(e -> {
+			ksmcField.clear();
+			ysxmField.clear();
+			hlzbField.clear();
+			hzmcField.clear();
+			jkjeField.clear();
+			yjjeField.clear();
+			zljeField.clear();
+			ghhmField.clear();
+		});
+		
+		exitButton.setOnAction(e -> {
+			this.setVisible(false);	
+			lastScene.getRoot().setVisible(true);
+			stage.setScene(lastScene);
+		});
+		
 		buttonFlowPane.getChildren().addAll(confirmButton, clearButton, exitButton);
 	
 		this.getChildren().add(buttonFlowPane);

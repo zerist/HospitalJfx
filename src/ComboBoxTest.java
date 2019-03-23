@@ -9,6 +9,7 @@ import javafx.stage.Stage;
 import javafx.collections.*;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.*;
 import javafx.scene.image.ImageView;
 import javafx.scene.text.Font;
@@ -37,6 +38,8 @@ public class ComboBoxTest extends Application{
 		flagDescription[2] = "France flag ...";
 		flagDescription[3] = "Norway flag ...";
 		flagDescription[4] = "United kingdom flag ...";
+		
+		
 		
 		setDisplay(0);
 		

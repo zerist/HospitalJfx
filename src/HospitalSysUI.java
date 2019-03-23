@@ -10,7 +10,7 @@ import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.collections.*;
-public class HospitalSys extends Application{
+public class HospitalSysUI extends Application{
 	@Override
 	public void start(Stage priStage) {
 		//…Ë÷√±ÍÃ‚
@@ -76,7 +76,7 @@ class LoginPane extends GridPane{
 			
 			this.setVisible(false);
 			RegistePane registePane = new RegistePane();
-			Scene regScene = new Scene(registePane, 600, 500);	
+			Scene regScene = new Scene(registePane, 600, 300);	
 			stage.setScene(regScene);
 			
 		});

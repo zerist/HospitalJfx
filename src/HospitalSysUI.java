@@ -316,7 +316,7 @@ class RegistePane extends FlowPane{
 	}
 }
 
-class DoctorPane extends FlowPane{
+class DoctorPane extends BorderPane{
 	PreparedStatement ps = null;
 	ResultSet rs = null;
 	StringProperty username = new SimpleStringProperty();
@@ -324,11 +324,15 @@ class DoctorPane extends FlowPane{
 	private final TableView<Patient> patientTableView = new TableView<Patient>();
 	private final ObservableList<Patient> patientDataList = FXCollections.observableArrayList();
 	
+	private final TableView<Doctor> doctorTableView = new TableView<DoctorPane.Doctor>();
+	private final ObservableList<Doctor> doctorDataList = FXCollections.observableArrayList();
+	
+	
 	@SuppressWarnings("unchecked")
 	public DoctorPane(Stage stage, LoginPane lastPane, Connection ct) {
-		this.setOrientation(Orientation.VERTICAL);
-		this.setAlignment(Pos.CENTER);
-		this.setVgap(10);
+		//this.setOrientation(Orientation.VERTICAL);
+		//this.setAlignment(Pos.CENTER);
+		//this.setVgap(10);
 		this.setPadding(new Insets(15));
 		
 		//按钮模拟菜单选项卡
@@ -340,7 +344,7 @@ class DoctorPane extends FlowPane{
 		Button brButton = new Button("病人列表");
 		brButton.setOnAction(e -> {
 			System.out.println("brbutton clicked");
-			//TODO
+			this.setBottom(patientTableView);
 		});
 		
 		Button srButton = new Button("收入列表");
@@ -358,11 +362,13 @@ class DoctorPane extends FlowPane{
 		});
 		
 		titlePane.getChildren().addAll(brButton, srButton, exitButton);
-		this.getChildren().add(titlePane);
+		//this.getChildren().add(titlePane);
+		this.setTop(titlePane);
 		
 		//分割线
 		Separator separator = new Separator(Orientation.HORIZONTAL);
-		this.getChildren().add(separator);
+		//this.getChildren().add(separator);
+		this.setCenter(separator);
 		
 		//tableView 病人列表
 			//获取数据
@@ -370,7 +376,12 @@ class DoctorPane extends FlowPane{
 			
 			@Override
 			public void invalidated(Observable observable) {
+				
 				try {
+					//获取病人列表数据
+						//清空之前数据
+					patientDataList.clear();
+					
 					String sql = "select dbo.T_GHXX.ghbh,dbo.T_BRXX.brmc,dbo.T_GHXX.rqsj,dbo.T_HZXX.hzmc " + 
 							"from dbo.T_GHXX,dbo.T_BRXX,dbo.T_HZXX " + 
 							"where dbo.T_GHXX.ysbh = ? and dbo.T_BRXX.brbh = dbo.T_GHXX.brbh and dbo.T_GHXX.hzbh = dbo.T_HZXX.hzbh";
@@ -384,6 +395,24 @@ class DoctorPane extends FlowPane{
 						System.out.println(rs.getString(4));
 						patientDataList.add(new Patient(rs.getString(1), rs.getString(2), rs.getString(3), rs.getString(4)));
 					}
+					
+					//获取收入列表数据
+						//清空之前数据
+//					doctorDataList.clear();
+//					
+//					String sql2 = "select dbo.T_GHXX.ghbh,dbo.T_BRXX.brmc,dbo.T_GHXX.rqsj,dbo.T_HZXX.hzmc " + 
+//							"from dbo.T_GHXX,dbo.T_BRXX,dbo.T_HZXX " + 
+//							"where dbo.T_GHXX.ysbh = ? and dbo.T_BRXX.brbh = dbo.T_GHXX.brbh and dbo.T_GHXX.hzbh = dbo.T_HZXX.hzbh";
+//					ps = ct.prepareStatement(sql2);
+//					ps.setString(1, username.getValue());
+//					rs = ps.executeQuery();
+//					while(rs.next()) {
+//						System.out.println(rs.getString(1));
+//						System.out.println(rs.getString(2));
+//						System.out.println(rs.getString(3));
+//						System.out.println(rs.getString(4));
+//						patientDataList.add(new Patient(rs.getString(1), rs.getString(2), rs.getString(3), rs.getString(4)));
+//					}
 				}catch (Exception e) {
 					e.printStackTrace();
 				}finally {
@@ -425,7 +454,8 @@ class DoctorPane extends FlowPane{
 		vbox.setPadding(new Insets(10,0,0,10));
 		vbox.getChildren().addAll(patientTableView);
 		
-		this.getChildren().add(vbox);
+		//this.getChildren().add(vbox);
+		this.setBottom(vbox);
 		
 	}
 	
@@ -475,6 +505,68 @@ class DoctorPane extends FlowPane{
  
         public void setHlzb(String fName) {
             hlzb.set(fName);
+        }
+	}
+	
+	//收入数据映射
+	public static class Doctor{
+		private final SimpleStringProperty ksmc;
+		private final SimpleStringProperty ysbh;
+		private final SimpleStringProperty ysmc;
+		private final SimpleStringProperty hlzb;
+		private final SimpleStringProperty ghrc;
+		private final SimpleStringProperty srhj;
+		
+		private Doctor(String ksmc, String ysbh, String ysmc, String hlzb, String ghrc, String srhj) {
+			this.ksmc = new SimpleStringProperty(ksmc);
+			this.ysbh = new SimpleStringProperty(ysbh);
+			this.ysmc = new SimpleStringProperty(ysmc);
+			this.hlzb = new SimpleStringProperty(hlzb);
+			this.ghrc = new SimpleStringProperty(ghrc);
+			this.srhj = new SimpleStringProperty(srhj);
+		}
+		
+		public String getKsmc() {
+            return ksmc.get();
+        }
+ 
+        public void setKsmc(String fName) {
+            ksmc.set(fName);
+        }
+        
+        public String getYsbh() {
+        	return ysbh.get();
+        }
+        public void setYsbh(String fName) {
+        	ysbh.set(fName);
+        }
+        
+        public String getYsmc() {
+        	return ysmc.get();
+        }
+        public void setYsmc(String fName) {
+        	ysmc.set(fName);
+        }
+        
+        public String getHlzb() {
+        	return hlzb.get();
+        }
+        public void setHlzb(String fName) {
+        	hlzb.set(fName);
+        }
+        
+        public String getGhrc() {
+        	return ghrc.get();
+        }
+        public void setGhrc(String fName) {
+        	ghrc.set(fName);
+        }
+        
+        public String getSrhj() {
+        	return srhj.get();
+        }
+        public void setSrhj(String fName) {
+        	srhj.set(fName);
         }
 	}
 }

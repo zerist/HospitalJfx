@@ -177,7 +177,7 @@ class LoginPane extends GridPane{
 						//Scene regScene = new Scene(registePane, 600, 300);
 						Scene scene = this.getScene();
 						if(type == 0) {
-							registerPane.username = userNameField.getText().trim();
+							registerPane.username.setValue(userNameField.getText().trim());
 							scene.setRoot(registerPane);
 							registerPane.setVisible(true);
 						}
@@ -213,7 +213,7 @@ class LoginPane extends GridPane{
 class RegistePane extends FlowPane{
 	PreparedStatement ps = null;
 	ResultSet rs = null;
-	String username = null;
+	StringProperty username = new SimpleStringProperty();
 	public RegistePane(Stage stage, LoginPane lastPane, Connection ct) {
 		//设置
 		this.setOrientation(Orientation.VERTICAL);
@@ -241,39 +241,105 @@ class RegistePane extends FlowPane{
 		
 		Label ksmcLabel = new Label("科室名称");
 		inputPane.add(ksmcLabel, 0, 0);
-		TextField ksmcField = new TextField();
+		ComboBox<String> ksmcField = new ComboBox<String>();
+		ksmcField.setPromptText("输入科室名称");
+		ksmcField.setEditable(true);
+		
 		inputPane.add(ksmcField, 1, 0);
 		Label ysxmLabel = new Label("医生姓名");
 		inputPane.add(ysxmLabel, 2, 0);
-		TextField ysxmField = new TextField();
+		ComboBox<String> ysxmField = new ComboBox<String>();
+		ysxmField.setPromptText("输入医生姓名");
+		ysxmField.setEditable(true);
 		inputPane.add(ysxmField, 3, 0);
 		
 		Label hlzbLabel = new Label("号类种别");
 		inputPane.add(hlzbLabel, 0, 1);
-		TextField hlzbField = new TextField();
+		ComboBox<String> hlzbField = new ComboBox<String>();
+		hlzbField.setPromptText("输入号类种别");
+		hlzbField.setEditable(true);
+		hlzbField.getItems().addAll("专家", "普通");
 		inputPane.add(hlzbField, 1, 1);
 		Label hzmcLabel = new Label("号种名称");
 		inputPane.add(hzmcLabel, 2, 1);
-		TextField hzmcField = new TextField();
+		ComboBox<String> hzmcField = new ComboBox<String>();
+		hzmcField.setPromptText("输入号种名称");
+		hzmcField.setEditable(true);
 		inputPane.add(hzmcField, 3, 1);
 		
 		Label jkjeLabel = new Label("缴款金额");
 		inputPane.add(jkjeLabel, 0, 2);
 		TextField jkjeField = new TextField();
+		jkjeField.setEditable(false);
 		inputPane.add(jkjeField, 1, 2);
 		Label yjjeLabel = new Label("应缴金额");
 		inputPane.add(yjjeLabel, 2, 2);
 		TextField yjjeField = new TextField();
+		yjjeField.setEditable(false);
 		inputPane.add(yjjeField, 3, 2);
 		
 		Label zljeLabel = new Label("找零金额");
 		inputPane.add(zljeLabel, 0, 3);
 		TextField zljeField = new TextField();
+		zljeField.setEditable(false);
 		inputPane.add(zljeField, 1, 3);
 		Label ghhmLabel = new Label("挂号号码");
 		inputPane.add(ghhmLabel, 2, 3);
 		TextField ghhmField = new TextField();
+		ghhmField.setEditable(false);
 		inputPane.add(ghhmField, 3, 3);
+		
+		//输入数据相关 comboBox
+		try {
+			//获取科室名称
+			ps = ct.prepareStatement("select ksmc from dbo.T_KSXX");
+			rs = ps.executeQuery();
+			while(rs.next()) {
+				ksmcField.getItems().add(rs.getString(1));
+			}
+			
+			//获取医生名称
+			ps = ct.prepareStatement("select ysmc from dbo.T_KSYS");
+			rs = ps.executeQuery();
+			while(rs.next()) {
+				ysxmField.getItems().add(rs.getString(1));
+			}
+
+			//获取号种名称
+			ps = ct.prepareStatement("select hzmc from dbo.T_HZXX");
+			rs = ps.executeQuery();
+			while(rs.next()) {
+				hzmcField.getItems().add(rs.getString(1));
+			}
+			
+			username.addListener(new InvalidationListener() {
+				
+				@Override
+				public void invalidated(Observable observable) {
+					try {
+						ps = ct.prepareStatement("select ycje from dbo.T_BRXX where brbh = ?");
+						ps.setString(1, username.getValue());
+						rs = ps.executeQuery();
+						rs.next();
+						jkjeField.setText(rs.getString(1));
+					}catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+			});
+		}catch (Exception e) {
+			e.printStackTrace();
+		}finally {
+			try {
+				if(rs != null) rs.close();
+				if(ps != null) ps.close();
+			}catch (Exception fe) {
+				fe.printStackTrace();
+			}
+		}
+		
+		//TODO 根据表格填写内容动态改变comboBox选项 同时动态修改金额数值
+		//TODO 按数据库号码顺序生成挂号号码
 		
 		this.getChildren().add(inputPane);
 		
@@ -292,10 +358,10 @@ class RegistePane extends FlowPane{
 		});
 		
 		clearButton.setOnAction(e -> {
-			ksmcField.clear();
-			ysxmField.clear();
-			hlzbField.clear();
-			hzmcField.clear();
+			ksmcField.setValue(null);
+			ysxmField.setValue(null);
+			hlzbField.setValue(null);
+			hzmcField.setValue(null);
 			jkjeField.clear();
 			yjjeField.clear();
 			zljeField.clear();
@@ -343,13 +409,13 @@ class DoctorPane extends BorderPane{
 		
 		Button brButton = new Button("病人列表");
 		brButton.setOnAction(e -> {
-			System.out.println("brbutton clicked");
+			//System.out.println("brbutton clicked");
 			this.setBottom(patientTableView);
 		});
 		
 		Button srButton = new Button("收入列表");
 		srButton.setOnAction(e -> {
-			System.out.println("srButton clicked");
+			//System.out.println("srButton clicked");
 			this.setBottom(doctorTableView);
 		});
 		
@@ -390,10 +456,10 @@ class DoctorPane extends BorderPane{
 					ps.setString(1, username.getValue());
 					rs = ps.executeQuery();
 					while(rs.next()) {
-						System.out.println(rs.getString(1));
-						System.out.println(rs.getString(2));
-						System.out.println(rs.getString(3));
-						System.out.println(rs.getString(4));
+						//System.out.println(rs.getString(1));
+						//System.out.println(rs.getString(2));
+						//System.out.println(rs.getString(3));
+						//System.out.println(rs.getString(4));
 						patientDataList.add(new Patient(rs.getString(1), rs.getString(2), rs.getString(3), rs.getString(4)));
 					}
 					

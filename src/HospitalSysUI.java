@@ -350,6 +350,7 @@ class DoctorPane extends BorderPane{
 		Button srButton = new Button("收入列表");
 		srButton.setOnAction(e -> {
 			System.out.println("srButton clicked");
+			this.setBottom(doctorTableView);
 		});
 		
 		Button exitButton = new Button("退出系统");
@@ -398,21 +399,16 @@ class DoctorPane extends BorderPane{
 					
 					//获取收入列表数据
 						//清空之前数据
-//					doctorDataList.clear();
-//					
-//					String sql2 = "select dbo.T_GHXX.ghbh,dbo.T_BRXX.brmc,dbo.T_GHXX.rqsj,dbo.T_HZXX.hzmc " + 
-//							"from dbo.T_GHXX,dbo.T_BRXX,dbo.T_HZXX " + 
-//							"where dbo.T_GHXX.ysbh = ? and dbo.T_BRXX.brbh = dbo.T_GHXX.brbh and dbo.T_GHXX.hzbh = dbo.T_HZXX.hzbh";
-//					ps = ct.prepareStatement(sql2);
-//					ps.setString(1, username.getValue());
-//					rs = ps.executeQuery();
-//					while(rs.next()) {
-//						System.out.println(rs.getString(1));
-//						System.out.println(rs.getString(2));
-//						System.out.println(rs.getString(3));
-//						System.out.println(rs.getString(4));
-//						patientDataList.add(new Patient(rs.getString(1), rs.getString(2), rs.getString(3), rs.getString(4)));
-//					}
+					doctorDataList.clear();
+					
+					String sqlString = "select dbo.T_GHXX.ghbh,dbo.T_KSXX.ksmc,dbo.T_GHXX.ysbh,dbo.T_KSYS.ysmc,dbo.T_HZXX.hzmc,dbo.T_GHXX.ghrc,dbo.T_GHXX.ghfy " + 
+							"from dbo.T_KSXX,dbo.T_GHXX,dbo.T_KSYS,dbo.T_HZXX " + 
+							"where dbo.T_KSYS.ysbh = dbo.T_GHXX.ysbh and dbo.T_KSXX.ksbh = dbo.T_KSYS.ksbh and dbo.T_HZXX.hzbh = dbo.T_GHXX.hzbh";
+					ps = ct.prepareStatement(sqlString);
+					rs = ps.executeQuery();
+					while(rs.next()) {
+						doctorDataList.add(new Doctor(rs.getString(1), rs.getString(2), rs.getString(3), rs.getString(4), rs.getString(5), rs.getString(5)));
+					}
 				}catch (Exception e) {
 					e.printStackTrace();
 				}finally {
@@ -428,7 +424,7 @@ class DoctorPane extends BorderPane{
 		});
 		
 		
-			//构建界面
+		//构建病人列表界面
 		TableColumn<Patient, String> ghbhColumn = new TableColumn<>("挂号编号");
 		ghbhColumn.setMinWidth(100);
 		ghbhColumn.setCellValueFactory(new PropertyValueFactory<>("ghbh"));
@@ -454,9 +450,44 @@ class DoctorPane extends BorderPane{
 		vbox.setPadding(new Insets(10,0,0,10));
 		vbox.getChildren().addAll(patientTableView);
 		
+		//默认显示病人列表
 		//this.getChildren().add(vbox);
 		this.setBottom(vbox);
 		
+		
+		//构建收入列表界面
+		TableColumn<Doctor, String> ksmcColumn = new TableColumn<>("科室名称");
+		ksmcColumn.setMinWidth(70);
+		ksmcColumn.setCellValueFactory(new PropertyValueFactory<>("ksmc"));
+		
+		TableColumn<Doctor, String> ysbhColumn = new TableColumn<>("医生编号");
+		ysbhColumn.setMinWidth(70);
+		ysbhColumn.setCellValueFactory(new PropertyValueFactory<>("ysbh"));
+		
+		TableColumn<Doctor, String> ysmcColumn = new TableColumn<>("医生名称");
+		ysmcColumn.setMinWidth(70);
+		ysmcColumn.setCellValueFactory(new PropertyValueFactory<>("ysmc"));
+		
+		TableColumn<Doctor, String> hlzb2Column = new TableColumn<>("号种类别");
+		hlzb2Column.setMinWidth(70);
+		hlzb2Column.setCellValueFactory(new PropertyValueFactory<>("hlzb"));
+		
+		TableColumn<Doctor, String> ghrcColumn = new TableColumn<>("挂号人次");
+		ghrcColumn.setMinWidth(70);
+		ghrcColumn.setCellValueFactory(new PropertyValueFactory<>("ghrc"));
+		
+		TableColumn<Doctor, String> srhjColumn = new TableColumn<>("收入合计");
+		srhjColumn.setMinWidth(70);
+		srhjColumn.setCellValueFactory(new PropertyValueFactory<>("srhj"));
+		
+		doctorTableView.setItems(doctorDataList);
+		doctorTableView.getColumns().addAll(ksmcColumn, ysbhColumn, ysmcColumn, hlzb2Column, ghrcColumn, srhjColumn);
+		
+		
+		final VBox vbox2 = new VBox();
+		vbox2.setSpacing(5);
+		vbox2.setPadding(new Insets(10,0,0,10));
+		vbox2.getChildren().addAll(doctorTableView);
 	}
 	
 	

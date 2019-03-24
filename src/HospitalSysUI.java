@@ -340,6 +340,7 @@ class RegistePane extends FlowPane{
 		
 		//TODO 根据表格填写内容动态改变comboBox选项 同时动态修改金额数值
 		//TODO 按数据库号码顺序生成挂号号码
+		//TODO 按钮快捷键
 		
 		this.getChildren().add(inputPane);
 		
@@ -427,6 +428,8 @@ class DoctorPane extends BorderPane{
 			lastPane.setVisible(true);
 			stage.setScene(scene);
 		});
+		
+		//TODO 按钮快捷键
 		
 		titlePane.getChildren().addAll(brButton, srButton, exitButton);
 		//this.getChildren().add(titlePane);
@@ -521,6 +524,7 @@ class DoctorPane extends BorderPane{
 		this.setBottom(vbox);
 		
 		
+		//TODO 按照时间过滤
 		//构建收入列表界面
 		TableColumn<Doctor, String> ksmcColumn = new TableColumn<>("科室名称");
 		ksmcColumn.setMinWidth(70);

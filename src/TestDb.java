@@ -18,15 +18,16 @@ public class TestDb {
 			conn = DriverManager.getConnection(dbURL, name ,pwd);
 			System.out.println("con");
 			
-			ps = conn.prepareStatement("select * from dbo.Table_test");
+			ps = conn.prepareStatement("select tid, num from dbo.Table_test");
 			rs = ps.executeQuery();
 			while(rs.next()) {
 				String tid = rs.getString("tid");
-				String tname = rs.getString(3);
-				String createDate = rs.getString(4);
+				//String tname = rs.getString(3);
+				//String createDate = rs.getString(4);
 				String num = rs.getString(2);
-				String statusId = rs.getString(5);
-				System.out.println(tid+" "+num+" "+tname+" "+createDate+" "+statusId);
+				//String statusId = rs.getString(5);
+				//System.out.println(tid+" "+num+" "+tname+" "+createDate+" "+statusId);
+				System.out.println(tid + " " + num);
 			}
 		}catch (Exception e) {
 			e.printStackTrace();

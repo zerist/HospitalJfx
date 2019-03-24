@@ -34,6 +34,13 @@ public class HospitalSysUI extends Application{
 		}
 	}
 	
+	//析构函数
+	protected void finalize() {
+		closeSys();
+		System.out.println("system exit!");
+	}
+	
+	
 	public void getConnect() {
 		
 		String dbName = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
@@ -63,11 +70,11 @@ public class HospitalSysUI extends Application{
 		LoginPane loginPane = new LoginPane(priStage, ct);
 		Scene scene = new Scene(loginPane, 600, 300);
 		
-		RegistePane registerPane = new RegistePane(priStage, loginPane);
+		RegistePane registerPane = new RegistePane(priStage, loginPane, ct);
 		registerPane.setVisible(false);
 		loginPane.registerPane = registerPane;
 		
-		DoctorPane doctorPane = new DoctorPane(priStage, loginPane);
+		DoctorPane doctorPane = new DoctorPane(priStage, loginPane, ct);
 		doctorPane.setVisible(false);
 		loginPane.doctorPane = doctorPane;
 		
@@ -189,8 +196,8 @@ class LoginPane extends GridPane{
 				ex.printStackTrace();
 			}finally {
 				try {
-					if(ps != null) ps.close();
 					if(rs != null) rs.close();
+					if(ps != null) ps.close();
 				}catch (Exception fe) {
 					fe.printStackTrace();
 				}
@@ -205,7 +212,7 @@ class RegistePane extends FlowPane{
 	PreparedStatement ps = null;
 	ResultSet rs = null;
 	String username = null;
-	public RegistePane(Stage stage, LoginPane lastPane) {
+	public RegistePane(Stage stage, LoginPane lastPane, Connection ct) {
 		//设置
 		this.setOrientation(Orientation.VERTICAL);
 		this.setAlignment(Pos.CENTER);
@@ -308,11 +315,15 @@ class RegistePane extends FlowPane{
 }
 
 class DoctorPane extends FlowPane{
-	PreparedStatement ps;
-	ResultSet rs;
+	PreparedStatement ps = null;
+	ResultSet rs = null;
 	String username = null;
 	
-	public DoctorPane(Stage stage, LoginPane lastPane) {
+	private final TableView<Patient> patientTableView = new TableView<Patient>();
+	private final ObservableList<Patient> patientDataList = FXCollections.observableArrayList();
+	
+	@SuppressWarnings("unchecked")
+	public DoctorPane(Stage stage, LoginPane lastPane, Connection ct) {
 		this.setOrientation(Orientation.VERTICAL);
 		this.setAlignment(Pos.CENTER);
 		this.setVgap(10);
@@ -351,10 +362,61 @@ class DoctorPane extends FlowPane{
 		Separator separator = new Separator(Orientation.HORIZONTAL);
 		this.getChildren().add(separator);
 		
-		//tableView
-		//TODO nextDay
+		//tableView 病人列表
+			//获取数据
+		try {
+			String sql = "select dbo.T_GHXX.ghbh,dbo.T_BRXX.brmc,dbo.T_GHXX.rqsj,dbo.T_HZXX.hzmc " + 
+					"from dbo.T_GHXX,dbo.T_BRXX,dbo.T_HZXX " + 
+					"where dbo.T_GHXX.ysbh = ? and dbo.T_BRXX.brbh = dbo.T_GHXX.brbh and dbo.T_GHXX.hzbh = dbo.T_HZXX.hzbh";
+			ps = ct.prepareStatement(sql);
+			ps.setString(1, username);
+			rs = ps.executeQuery();
+			while(rs.next()) {
+				patientDataList.add(new Patient(rs.getString(1), rs.getString(2), rs.getString(3), rs.getString(4)));
+			}
+		}catch (Exception e) {
+			e.printStackTrace();
+		}finally {
+			try {
+				if(rs != null) rs.close();
+				if(ps != null) ps.close();
+			}catch (Exception fe) {
+				fe.printStackTrace();
+			}
+		}
+		
+			//构建界面
+		TableColumn<Patient, String> ghbhColumn = new TableColumn<>("挂号编号");
+		ghbhColumn.setMinWidth(100);
+		ghbhColumn.setCellValueFactory(new PropertyValueFactory<>("ghbh"));
+		
+		TableColumn<Patient, String> brmcColumn = new TableColumn<>("病人名称");
+		brmcColumn.setMinWidth(100);
+		brmcColumn.setCellValueFactory(new PropertyValueFactory<>("brmc"));
+		
+		TableColumn<Patient, String> ghrqsjColumn = new TableColumn<>("挂号日期时间");
+		ghrqsjColumn.setMinWidth(100);
+		ghrqsjColumn.setCellValueFactory(new PropertyValueFactory<>("ghrqsj"));
+		
+		TableColumn<Patient, String> hlzbColumn = new TableColumn<>("号类种别");
+		hlzbColumn.setMinWidth(100);
+		hlzbColumn.setCellValueFactory(new PropertyValueFactory<>("hlzb"));
+		
+		patientTableView.setItems(patientDataList);
+		patientTableView.getColumns().addAll(ghbhColumn, brmcColumn, ghrqsjColumn, hlzbColumn);
+		
+		
+		final VBox vbox = new VBox();
+		vbox.setSpacing(5);
+		vbox.setPadding(new Insets(10,0,0,10));
+		vbox.getChildren().addAll(patientTableView);
+		
+		this.getChildren().add(vbox);
+		
 	}
 	
+	
+	//病人数据映射
 	public static class Patient{
 		private final SimpleStringProperty ghbh;
 		private final SimpleStringProperty brmc;

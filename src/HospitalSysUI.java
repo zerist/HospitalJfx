@@ -17,6 +17,8 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.collections.*;
 import javafx.scene.control.cell.*;
+import javafx.beans.InvalidationListener;
+import javafx.beans.Observable;
 import javafx.beans.property.*;
 public class HospitalSysUI extends Application{
 	public Connection ct = null;
@@ -68,7 +70,7 @@ public class HospitalSysUI extends Application{
 		
 		
 		LoginPane loginPane = new LoginPane(priStage, ct);
-		Scene scene = new Scene(loginPane, 600, 300);
+		Scene scene = new Scene(loginPane, 750, 500);
 		
 		RegistePane registerPane = new RegistePane(priStage, loginPane, ct);
 		registerPane.setVisible(false);
@@ -180,7 +182,7 @@ class LoginPane extends GridPane{
 							registerPane.setVisible(true);
 						}
 						if(type == 1) {
-							doctorPane.username = userNameField.getText().trim();
+							doctorPane.username.setValue(userNameField.getText().trim());
 							scene.setRoot(doctorPane);
 							doctorPane.setVisible(true);
 						}
@@ -317,7 +319,7 @@ class RegistePane extends FlowPane{
 class DoctorPane extends FlowPane{
 	PreparedStatement ps = null;
 	ResultSet rs = null;
-	String username = null;
+	StringProperty username = new SimpleStringProperty();
 	
 	private final TableView<Patient> patientTableView = new TableView<Patient>();
 	private final ObservableList<Patient> patientDataList = FXCollections.observableArrayList();
@@ -364,26 +366,38 @@ class DoctorPane extends FlowPane{
 		
 		//tableView 病人列表
 			//获取数据
-		try {
-			String sql = "select dbo.T_GHXX.ghbh,dbo.T_BRXX.brmc,dbo.T_GHXX.rqsj,dbo.T_HZXX.hzmc " + 
-					"from dbo.T_GHXX,dbo.T_BRXX,dbo.T_HZXX " + 
-					"where dbo.T_GHXX.ysbh = ? and dbo.T_BRXX.brbh = dbo.T_GHXX.brbh and dbo.T_GHXX.hzbh = dbo.T_HZXX.hzbh";
-			ps = ct.prepareStatement(sql);
-			ps.setString(1, username);
-			rs = ps.executeQuery();
-			while(rs.next()) {
-				patientDataList.add(new Patient(rs.getString(1), rs.getString(2), rs.getString(3), rs.getString(4)));
+		username.addListener(new InvalidationListener() {
+			
+			@Override
+			public void invalidated(Observable observable) {
+				try {
+					String sql = "select dbo.T_GHXX.ghbh,dbo.T_BRXX.brmc,dbo.T_GHXX.rqsj,dbo.T_HZXX.hzmc " + 
+							"from dbo.T_GHXX,dbo.T_BRXX,dbo.T_HZXX " + 
+							"where dbo.T_GHXX.ysbh = ? and dbo.T_BRXX.brbh = dbo.T_GHXX.brbh and dbo.T_GHXX.hzbh = dbo.T_HZXX.hzbh";
+					ps = ct.prepareStatement(sql);
+					ps.setString(1, username.getValue());
+					rs = ps.executeQuery();
+					while(rs.next()) {
+						System.out.println(rs.getString(1));
+						System.out.println(rs.getString(2));
+						System.out.println(rs.getString(3));
+						System.out.println(rs.getString(4));
+						patientDataList.add(new Patient(rs.getString(1), rs.getString(2), rs.getString(3), rs.getString(4)));
+					}
+				}catch (Exception e) {
+					e.printStackTrace();
+				}finally {
+					try {
+						if(rs != null) rs.close();
+						if(ps != null) ps.close();
+					}catch (Exception fe) {
+						fe.printStackTrace();
+					}
+				}
+				
 			}
-		}catch (Exception e) {
-			e.printStackTrace();
-		}finally {
-			try {
-				if(rs != null) rs.close();
-				if(ps != null) ps.close();
-			}catch (Exception fe) {
-				fe.printStackTrace();
-			}
-		}
+		});
+		
 		
 			//构建界面
 		TableColumn<Patient, String> ghbhColumn = new TableColumn<>("挂号编号");
@@ -431,35 +445,35 @@ class DoctorPane extends FlowPane{
             this.hlzb = new SimpleStringProperty(hlzb);
         }
  
-        public String getghbh() {
+        public String getGhbh() {
             return ghbh.get();
         }
  
-        public void setghbh(String fName) {
+        public void setGhbh(String fName) {
             ghbh.set(fName);
         }
  
-        public String getbrmc() {
+        public String getBrmc() {
             return brmc.get();
         }
  
-        public void setbrmc(String fName) {
+        public void setBrmc(String fName) {
             brmc.set(fName);
         }
         
-        public String getghrqsj() {
+        public String getGhrqsj() {
             return ghrqsj.get();
         }
  
-        public void setghrqsj(String fName) {
+        public void setGhrqsj(String fName) {
             ghrqsj.set(fName);
         }
         
-        public String gethlzb() {
+        public String getHlzb() {
             return hlzb.get();
         }
  
-        public void sethlzb(String fName) {
+        public void setHlzb(String fName) {
             hlzb.set(fName);
         }
 	}

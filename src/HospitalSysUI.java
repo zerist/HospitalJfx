@@ -389,6 +389,8 @@ class RegistePane extends FlowPane{
 				hzmcProperty.set(hzmcField.getSelectionModel().getSelectedItem().toString().trim());
 				System.out.println(hzmcProperty.get());
 			}
+			
+			//Ìî³äÓ¦½É½ð¶î,ÕÒÁã½ð¶î
 			try {
 				String sqlString = "select ghfy from dbo.T_HZXX where hzmc = ?";
 				ps = ct.prepareStatement(sqlString);
@@ -466,7 +468,14 @@ class RegistePane extends FlowPane{
 		
 		confirmButton.setOnAction(e -> {
 			System.out.println("click confirmButton");
-			//TODO
+			try {
+				String sqlString = "select top 1 ghbh from dbo.T_GHXX order by ghbh desc;";
+				ps = ct.prepareStatement(sqlString);
+				rs = ps.executeQuery();
+				
+			}catch (Exception e1) {
+				e1.printStackTrace();
+			}
 		});
 		
 		clearButton.setOnAction(e -> {

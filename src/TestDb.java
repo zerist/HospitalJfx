@@ -11,8 +11,8 @@ public class TestDb {
 		String name = "sa";
 		String pwd = "1518079220";
 		String t1 = null;
-		String t2 = "";
-		System.out.println(" " +t2.length());
+		String t2 = "000001";
+		System.out.println(Integer.parseInt(t2));
 		ResultSet rs = null;
 		PreparedStatement ps = null;
 		Connection conn = null;

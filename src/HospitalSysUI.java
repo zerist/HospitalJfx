@@ -3,6 +3,7 @@ import javafx.application.Application;
 import java.io.Closeable;
 import java.sql.*;
 
+import javax.script.SimpleScriptContext;
 import javax.swing.ButtonModel;
 
 import javafx.event.*;
@@ -214,6 +215,12 @@ class RegistePane extends FlowPane{
 	PreparedStatement ps = null;
 	ResultSet rs = null;
 	StringProperty username = new SimpleStringProperty();
+	
+	//保存combobox的值
+	StringProperty ksmcProperty = new SimpleStringProperty();
+	StringProperty ysxmProperty = new SimpleStringProperty();
+	StringProperty hlzbProperty = new SimpleStringProperty();
+	StringProperty hzmcProperty = new SimpleStringProperty();
 	public RegistePane(Stage stage, LoginPane lastPane, Connection ct) {
 		//设置
 		this.setOrientation(Orientation.VERTICAL);
@@ -244,13 +251,21 @@ class RegistePane extends FlowPane{
 		ComboBox<String> ksmcField = new ComboBox<String>();
 		ksmcField.setPromptText("输入科室名称");
 		ksmcField.setEditable(true);
-		
+		ksmcField.setOnAction(e ->{
+			ksmcProperty.set(ksmcField.getSelectionModel().getSelectedItem().toString().trim());
+			System.out.println(ksmcProperty.get());
+		});
 		inputPane.add(ksmcField, 1, 0);
+		
 		Label ysxmLabel = new Label("医生姓名");
 		inputPane.add(ysxmLabel, 2, 0);
 		ComboBox<String> ysxmField = new ComboBox<String>();
 		ysxmField.setPromptText("输入医生姓名");
 		ysxmField.setEditable(true);
+		ysxmField.setOnAction(e -> {
+			ysxmProperty.set(ysxmField.getSelectionModel().getSelectedItem().toString().trim());
+			System.out.println(ysxmProperty.get());
+		});
 		inputPane.add(ysxmField, 3, 0);
 		
 		Label hlzbLabel = new Label("号类种别");
@@ -258,13 +273,21 @@ class RegistePane extends FlowPane{
 		ComboBox<String> hlzbField = new ComboBox<String>();
 		hlzbField.setPromptText("输入号类种别");
 		hlzbField.setEditable(true);
-		hlzbField.getItems().addAll("专家", "普通");
+		//hlzbField.getItems().addAll("专家", "普通");
+		hlzbField.setOnAction(e -> {
+			hlzbProperty.set(hlzbField.getSelectionModel().getSelectedItem().toString().trim());
+			System.out.println(hlzbProperty.get());
+		});
 		inputPane.add(hlzbField, 1, 1);
 		Label hzmcLabel = new Label("号种名称");
 		inputPane.add(hzmcLabel, 2, 1);
 		ComboBox<String> hzmcField = new ComboBox<String>();
 		hzmcField.setPromptText("输入号种名称");
 		hzmcField.setEditable(true);
+		hzmcField.setOnAction(e -> {
+			hzmcProperty.set(hzmcField.getSelectionModel().getSelectedItem().toString().trim());
+			System.out.println(hzmcProperty.get());
+		});
 		inputPane.add(hzmcField, 3, 1);
 		
 		Label jkjeLabel = new Label("缴款金额");
@@ -304,7 +327,17 @@ class RegistePane extends FlowPane{
 			while(rs.next()) {
 				ysxmField.getItems().add(rs.getString(1));
 			}
-
+			
+			//获取号类种别
+			ps = ct.prepareStatement("select distinct sfzj from test.dbo.T_HZXX");
+			rs = ps.executeQuery();
+			while(rs.next()) {
+				if(rs.getString(1).trim().equals("1")) {
+					hlzbField.getItems().add("专家");
+				}else {
+					hlzbField.getItems().add("普通");
+				}
+			}
 			//获取号种名称
 			ps = ct.prepareStatement("select hzmc from dbo.T_HZXX");
 			rs = ps.executeQuery();

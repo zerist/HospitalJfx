@@ -515,6 +515,7 @@ class DoctorPane extends BorderPane{
 		hlzbColumn.setCellValueFactory(new PropertyValueFactory<>("hlzb"));
 		
 		patientTableView.setItems(patientDataList);
+		patientTableView.setStyle("-fx-alignment: center");
 		patientTableView.getColumns().addAll(ghbhColumn, brmcColumn, ghrqsjColumn, hlzbColumn);
 		
 		

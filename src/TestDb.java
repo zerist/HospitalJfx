@@ -10,6 +10,9 @@ public class TestDb {
 		String dbURL = "jdbc:sqlserver://localhost:1433;DatabaseName=test";
 		String name = "sa";
 		String pwd = "1518079220";
+		String t1 = null;
+		String t2 = "";
+		System.out.println(" " +t2.length());
 		ResultSet rs = null;
 		PreparedStatement ps = null;
 		Connection conn = null;

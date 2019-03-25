@@ -221,6 +221,7 @@ class RegistePane extends FlowPane{
 	StringProperty ysxmProperty = new SimpleStringProperty();
 	StringProperty hlzbProperty = new SimpleStringProperty();
 	StringProperty hzmcProperty = new SimpleStringProperty();
+	
 	public RegistePane(Stage stage, LoginPane lastPane, Connection ct) {
 		//设置
 		this.setOrientation(Orientation.VERTICAL);
@@ -248,46 +249,31 @@ class RegistePane extends FlowPane{
 		
 		Label ksmcLabel = new Label("科室名称");
 		inputPane.add(ksmcLabel, 0, 0);
-		ComboBox<String> ksmcField = new ComboBox<String>();
+		final ComboBox<String> ksmcField = new ComboBox<String>();
 		ksmcField.setPromptText("输入科室名称");
 		ksmcField.setEditable(true);
-		ksmcField.setOnAction(e ->{
-			ksmcProperty.set(ksmcField.getSelectionModel().getSelectedItem().toString().trim());
-			System.out.println(ksmcProperty.get());
-		});
 		inputPane.add(ksmcField, 1, 0);
 		
 		Label ysxmLabel = new Label("医生姓名");
 		inputPane.add(ysxmLabel, 2, 0);
-		ComboBox<String> ysxmField = new ComboBox<String>();
+		final ComboBox<String> ysxmField = new ComboBox<String>();
 		ysxmField.setPromptText("输入医生姓名");
 		ysxmField.setEditable(true);
-		ysxmField.setOnAction(e -> {
-			ysxmProperty.set(ysxmField.getSelectionModel().getSelectedItem().toString().trim());
-			System.out.println(ysxmProperty.get());
-		});
 		inputPane.add(ysxmField, 3, 0);
 		
 		Label hlzbLabel = new Label("号类种别");
 		inputPane.add(hlzbLabel, 0, 1);
-		ComboBox<String> hlzbField = new ComboBox<String>();
+		final ComboBox<String> hlzbField = new ComboBox<String>();
 		hlzbField.setPromptText("输入号类种别");
 		hlzbField.setEditable(true);
 		//hlzbField.getItems().addAll("专家", "普通");
-		hlzbField.setOnAction(e -> {
-			hlzbProperty.set(hlzbField.getSelectionModel().getSelectedItem().toString().trim());
-			System.out.println(hlzbProperty.get());
-		});
 		inputPane.add(hlzbField, 1, 1);
+		
 		Label hzmcLabel = new Label("号种名称");
 		inputPane.add(hzmcLabel, 2, 1);
-		ComboBox<String> hzmcField = new ComboBox<String>();
+		final ComboBox<String> hzmcField = new ComboBox<String>();
 		hzmcField.setPromptText("输入号种名称");
 		hzmcField.setEditable(true);
-		hzmcField.setOnAction(e -> {
-			hzmcProperty.set(hzmcField.getSelectionModel().getSelectedItem().toString().trim());
-			System.out.println(hzmcProperty.get());
-		});
 		inputPane.add(hzmcField, 3, 1);
 		
 		Label jkjeLabel = new Label("缴款金额");
@@ -311,6 +297,113 @@ class RegistePane extends FlowPane{
 		TextField ghhmField = new TextField();
 		ghhmField.setEditable(false);
 		inputPane.add(ghhmField, 3, 3);
+		
+		
+		username.addListener(new InvalidationListener() {
+			
+			@Override
+			public void invalidated(Observable observable) {
+				try {
+					ps = ct.prepareStatement("select ycje from dbo.T_BRXX where brbh = ?");
+					ps.setString(1, username.getValue());
+					rs = ps.executeQuery();
+					rs.next();
+					jkjeField.setText(rs.getString(1));
+				}catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+		
+		
+		ksmcField.setOnAction(e ->{
+			if(ksmcField.getSelectionModel().getSelectedItem() != null) {
+				ksmcProperty.set(ksmcField.getSelectionModel().getSelectedItem().toString().trim());
+				System.out.println(ksmcProperty.get());
+			}
+			try {
+				String sqlString = "select ksbh from dbo.T_KSXX where ksmc=?";
+				ps = ct.prepareStatement(sqlString);
+				ps.setString(1, ksmcProperty.get());
+				rs = ps.executeQuery();
+				if(rs.next()) {
+					String ksbhString = rs.getString(1);
+					
+					//获取医生名称
+					ysxmField.getItems().clear();
+					ps = ct.prepareStatement("select ysmc from dbo.T_KSYS where ksbh = ?");
+					ps.setString(1, ksbhString);
+					rs = ps.executeQuery();
+					while(rs.next()) {
+						ysxmField.getItems().add(rs.getString(1));
+					}
+				}
+				
+			}catch (Exception e1) {
+				e1.printStackTrace();
+			}
+		});
+		
+		ysxmField.setOnAction(e -> {
+			if(ysxmField.getSelectionModel().getSelectedItem() != null) {
+				ysxmProperty.set(ysxmField.getSelectionModel().getSelectedItem().toString().trim());
+				System.out.println(ysxmProperty.get());
+			}
+		});
+		
+		hlzbField.setOnAction(e -> {
+			if(hlzbField.getSelectionModel().getSelectedItem() != null) {
+				hlzbProperty.set(hlzbField.getSelectionModel().getSelectedItem().toString().trim());
+				System.out.println(hlzbProperty.get());
+			}
+			try {
+				String sqlString = "select hzbh from dbo.T_HZXX where sfzj = ?";
+				ps = ct.prepareStatement(sqlString);
+				if(hlzbProperty.get().trim().equals("专家")) {
+					ps.setString(1, "1");
+				}else {
+					ps.setString(1, "0");
+				}
+				rs = ps.executeQuery();
+				hzmcField.getItems().clear();
+				while(rs.next()) {
+					String hzbhString = rs.getString(1);
+					//System.out.println(111);
+					//获取医生名称
+					
+					ps = ct.prepareStatement("select hzmc from dbo.T_HZXX where hzbh = ?");
+					ps.setString(1, hzbhString);
+					ResultSet rs2 = ps.executeQuery();
+					while(rs2.next()) {
+						hzmcField.getItems().add(rs2.getString(1));
+					}
+				}
+				
+			}catch (Exception e1) {
+				e1.printStackTrace();
+			}
+		});
+		
+		hzmcField.setOnAction(e -> {
+			if(hzmcField.getSelectionModel().getSelectedItem() != null) {
+				hzmcProperty.set(hzmcField.getSelectionModel().getSelectedItem().toString().trim());
+				System.out.println(hzmcProperty.get());
+			}
+			try {
+				String sqlString = "select ghfy from dbo.T_HZXX where hzmc = ?";
+				ps = ct.prepareStatement(sqlString);
+				ps.setString(1, hzmcProperty.get().trim());
+				rs = ps.executeQuery();
+				while(rs.next()) {
+					String tmpString = rs.getString(1);
+					yjjeField.setText(tmpString);
+					zljeField.setText((Float.parseFloat(jkjeField.getText()) - Float.parseFloat(tmpString))+"");
+				}
+				
+			}catch (Exception e1) {
+				e1.printStackTrace();
+			}
+		});
 		
 		//输入数据相关 comboBox
 		try {
@@ -345,21 +438,6 @@ class RegistePane extends FlowPane{
 				hzmcField.getItems().add(rs.getString(1));
 			}
 			
-			username.addListener(new InvalidationListener() {
-				
-				@Override
-				public void invalidated(Observable observable) {
-					try {
-						ps = ct.prepareStatement("select ycje from dbo.T_BRXX where brbh = ?");
-						ps.setString(1, username.getValue());
-						rs = ps.executeQuery();
-						rs.next();
-						jkjeField.setText(rs.getString(1));
-					}catch (Exception e) {
-						e.printStackTrace();
-					}
-				}
-			});
 		}catch (Exception e) {
 			e.printStackTrace();
 		}finally {

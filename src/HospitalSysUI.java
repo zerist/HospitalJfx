@@ -472,7 +472,13 @@ class RegistePane extends FlowPane{
 				String sqlString = "select top 1 ghbh from dbo.T_GHXX order by ghbh desc;";
 				ps = ct.prepareStatement(sqlString);
 				rs = ps.executeQuery();
-				
+				rs.next();
+				String newGhbhString = ""+(Integer.parseInt(rs.getString(1))+1);
+				while(newGhbhString.length() < 6) {
+					newGhbhString = "0" + newGhbhString;
+				}
+				System.out.println(newGhbhString);
+				//TODO	根据其他输入获取T_GHXX所需其他数据，插入数据库
 			}catch (Exception e1) {
 				e1.printStackTrace();
 			}

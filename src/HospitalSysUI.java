@@ -386,6 +386,10 @@ class RegistePane extends FlowPane{
 class DoctorPane extends BorderPane{
 	PreparedStatement ps = null;
 	ResultSet rs = null;
+	PreparedStatement psStatement = null;
+	ResultSet rSet = null;
+	VBox vbox = null;
+	VBox vbox2 = null;
 	StringProperty username = new SimpleStringProperty();
 	
 	private final TableView<Patient> patientTableView = new TableView<Patient>();
@@ -411,13 +415,13 @@ class DoctorPane extends BorderPane{
 		Button brButton = new Button("病人列表");
 		brButton.setOnAction(e -> {
 			//System.out.println("brbutton clicked");
-			this.setBottom(patientTableView);
+			this.setBottom(vbox);
 		});
 		
 		Button srButton = new Button("收入列表");
 		srButton.setOnAction(e -> {
 			//System.out.println("srButton clicked");
-			this.setBottom(doctorTableView);
+			this.setBottom(vbox2);
 		});
 		
 		Button exitButton = new Button("退出系统");
@@ -514,7 +518,7 @@ class DoctorPane extends BorderPane{
 		patientTableView.getColumns().addAll(ghbhColumn, brmcColumn, ghrqsjColumn, hlzbColumn);
 		
 		
-		final VBox vbox = new VBox();
+		vbox = new VBox();
 		vbox.setSpacing(5);
 		vbox.setPadding(new Insets(10,0,0,10));
 		vbox.getChildren().addAll(patientTableView);
@@ -553,11 +557,51 @@ class DoctorPane extends BorderPane{
 		doctorTableView.setItems(doctorDataList);
 		doctorTableView.getColumns().addAll(ksmcColumn, ysbhColumn, ysmcColumn, hlzb2Column, ghrcColumn, srhjColumn);
 		
+		//时间过滤界面
+		final HBox hBox = new HBox();
+		hBox.setSpacing(5);
+		hBox.setPadding(new Insets(15));
 		
-		final VBox vbox2 = new VBox();
+		Label beginTimeLabel = new Label("开始时间");
+		TextField beginTimeField = new TextField();
+		Label endTimeLabel = new Label("结束时间");
+		TextField endTimeField = new TextField();
+		Button queryButton = new Button("查询");
+		
+		queryButton.setOnAction(e -> {
+			try {
+				String sqlString2 = "select dbo.T_GHXX.ghbh,dbo.T_KSXX.ksmc,dbo.T_GHXX.ysbh,dbo.T_KSYS.ysmc,dbo.T_HZXX.hzmc,dbo.T_GHXX.ghrc,dbo.T_GHXX.ghfy " + 
+						"from dbo.T_KSXX,dbo.T_GHXX,dbo.T_KSYS,dbo.T_HZXX " + 
+						"where dbo.T_KSYS.ysbh = dbo.T_GHXX.ysbh and dbo.T_KSXX.ksbh = dbo.T_KSYS.ksbh and dbo.T_HZXX.hzbh = dbo.T_GHXX.hzbh " + 
+						"and dbo.T_GHXX.rqsj > '"+ beginTimeField.getText().trim() +"' and dbo.T_GHXX.rqsj < '"+ endTimeField.getText().trim() +"'";
+				
+				psStatement = ct.prepareStatement(sqlString2);
+				rSet = psStatement.executeQuery();
+				
+				//清空之前数据
+				doctorDataList.clear();
+				while(rSet.next()) {
+					doctorDataList.add(new Doctor(rSet.getString(1), rSet.getString(2), rSet.getString(3), rSet.getString(4), rSet.getString(5), rSet.getString(5)));
+				}
+			}catch (Exception fe) {
+				fe.printStackTrace();
+			}finally {
+				try {
+					if (rSet != null) rSet.close();
+					if (psStatement != null) psStatement.close();
+				}catch (Exception e2) {
+					e2.printStackTrace();
+				}
+			}
+		});
+		
+		
+		hBox.getChildren().addAll(beginTimeLabel, beginTimeField, endTimeLabel, endTimeField, queryButton);
+		
+		vbox2 = new VBox();
 		vbox2.setSpacing(5);
 		vbox2.setPadding(new Insets(10,0,0,10));
-		vbox2.getChildren().addAll(doctorTableView);
+		vbox2.getChildren().addAll(hBox,doctorTableView);
 	}
 	
 	

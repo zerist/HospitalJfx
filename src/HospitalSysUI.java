@@ -28,9 +28,9 @@ public class HospitalSysUI extends Application{
 	
 	public void closeSys() {
 		try {
-			if(ct != null) ct.close();
-			if(ps != null) ps.close();
 			if(rs != null) rs.close();
+			if(ps != null) ps.close();
+			if(ct != null) ct.close();	
 		}catch (Exception e) {
 			System.out.println("close system err!");
 			e.printStackTrace();

@@ -469,6 +469,11 @@ class RegistePane extends FlowPane{
 		confirmButton.setOnAction(e -> {
 			System.out.println("click confirmButton");
 			try {
+				String hzbhString = null;
+				String ysbhString = null;
+				String ghfyString = null;
+				
+				
 				String sqlString = "select top 1 ghbh from dbo.T_GHXX order by ghbh desc;";
 				ps = ct.prepareStatement(sqlString);
 				rs = ps.executeQuery();
@@ -479,6 +484,39 @@ class RegistePane extends FlowPane{
 				}
 				System.out.println(newGhbhString);
 				//TODO	根据其他输入获取T_GHXX所需其他数据，插入数据库
+				
+				ps = ct.prepareStatement("select hzbh,ghfy,ksbh from dbo.T_HZXX where hzmc=?");
+				ps.setString(1, hzmcProperty.get());
+				rs = ps.executeQuery();
+				if(rs.next()) {
+					hzbhString = rs.getString(1);
+					ghfyString = rs.getString(2);
+				}
+				
+				ps = ct.prepareStatement("select ysbh from dbo.T_KSYS where ysmc=?");
+				ps.setString(1, ysxmProperty.get());
+				rs = ps.executeQuery();
+				if(rs.next()) {
+					ysbhString = rs.getString(1);
+				}
+				
+				//TODO 病人预存金额未修改
+				//TODO 挂号人次未修改
+				
+				if(ghfyString != null && ysbhString != null && hzbhString != null) {
+					ps = ct.prepareStatement("insert into dbo.T_GHXX values (?,?,?,?,1,0,?,getdate())");
+					ps.setString(1, newGhbhString);
+					ps.setString(2, hzbhString);
+					ps.setString(3, ysbhString);
+					ps.setString(4, username.get());
+					ps.setString(5, ghfyString);
+					
+					ps.executeUpdate();
+					ghhmField.setText(newGhbhString);
+				}else {
+					ghhmField.setText("挂号失败");
+				}
+				
 			}catch (Exception e1) {
 				e1.printStackTrace();
 			}

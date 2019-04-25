@@ -1,10 +1,8 @@
 import javafx.application.Application;
-
 import java.io.Closeable;
 import java.sql.*;
 
 import javax.script.SimpleScriptContext;
-import javax.swing.ButtonModel;
 
 import javafx.event.*;
 import javafx.geometry.*;
